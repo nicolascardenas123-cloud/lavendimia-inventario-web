@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Inventario La Vendimia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --burdeos: #6B1E2E;
+    --burdeos-2: #4A1420;
+    --dorado: #C9A84C;
+    --bg: #F7F4EF;
+    --card: #FFFFFF;
+    --ink: #1F1A17;
+    --muted: #6E6660;
+    --line: #E6DFD5;
+    --ok: #2E7D4F;   --ok-bg: #E4F2E9;
+    --low: #9A6700;  --low-bg: #FFF3D6;
+    --out: #A3242F;  --out-bg: #FBE5E7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    background: linear-gradient(135deg, var(--burdeos), var(--burdeos-2));
+    color: #fff; padding: 20px 16px 18px; border-bottom: 3px solid var(--dorado);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .brand h1 {
+    font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700;
+    font-size: 30px; letter-spacing: .06em; margin: 0;
+  }
+  .brand span { color: var(--dorado); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; }
+  .meta { margin-top: 6px; font-size: 13px; color: #EBD9DC; }
+  .meta b { color: #fff; font-weight: 600; }
+
+  main { padding: 16px; }
+
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+    border: 0; border-bottom: 3px solid transparent; background: none; color: var(--muted);
+    padding: 8px 10px;
+  }
+  .tab small { font-weight: 500; margin-left: 3px; }
+  .tab.on { color: var(--burdeos); border-bottom-color: var(--dorado); }
+  .tab.cero { margin-left: auto; color: var(--out); }
+  .tab.cero.on { border-bottom-color: var(--out); }
+  td.anio { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .controls {
+    display: grid; grid-template-columns: minmax(260px, 1.4fr) minmax(190px, 0.8fr) minmax(220px, 1.2fr); gap: 10px; align-items: center;
+    position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0;
+  }
+  select, input[type=search] {
+    width: 100%; font: inherit; padding: 11px 12px; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--card); color: var(--ink);
+  }
+  select { font-weight: 600; color: var(--burdeos); }
+  select:disabled { opacity: .45; }
+  select:focus, input:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; white-space: nowrap; cursor: pointer; user-select: none; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--burdeos); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 6px 0 16px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .kpi .v { font-size: 24px; font-weight: 700; color: var(--burdeos); font-variant-numeric: tabular-nums; }
+  .kpi .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+
+  section.grupo { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
+  .grupo-h {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 12px 16px; border-bottom: 1px solid var(--line); background: #FBF8F3;
+  }
+  .grupo-h h2 { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-size: 22px; color: var(--burdeos); letter-spacing: .03em; }
+  .grupo-h .res { font-size: 13px; color: var(--muted); }
+  .grupo-h .res b { color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; cursor: pointer; white-space: nowrap; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.asc::after { content: " ▲"; } th.desc::after { content: " ▼"; }
+  td.prod { font-weight: 600; }
+  td.cod { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  td.fmt, td.caja { white-space: nowrap; }
+  .fmt-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; background: #F3ECE0; color: var(--burdeos); font-size: 12px; font-weight: 600; }
+  .fmt-tag.m { background: var(--burdeos); color: #fff; }
+  .fmt-tag.s { background: #FBF3DD; color: #8A6A12; }
+  .pill { display: inline-block; min-width: 54px; text-align: center; padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; }
+  .ok  { background: var(--ok-bg);  color: var(--ok); }
+  .low { background: var(--low-bg); color: var(--low); }
+  .out { background: var(--out-bg); color: var(--out); }
+
+  .vacio, .error { text-align: center; padding: 40px 16px; color: var(--muted); }
+  .error { color: var(--out); }
+  .leyenda { font-size: 12px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; margin: 4px 0 10px; }
+  .leyenda .pill { min-width: 0; padding: 1px 8px; font-size: 11px; }
+  .login {
+    position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px;
+    background: linear-gradient(135deg, var(--burdeos), var(--burdeos-2));
+  }
+  .login.on { display: flex; }
+  .login form {
+    width: 100%; max-width: 360px; background: var(--card); border-radius: 16px; padding: 28px 22px;
+    border-top: 4px solid var(--dorado); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  }
+  .login h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 28px; letter-spacing: .06em; color: var(--burdeos); margin: 0 0 2px; }
+  .login p { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+  .login input { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+  .login button { width: 100%; font: inherit; font-weight: 700; padding: 12px; border: 0; border-radius: 10px; background: var(--burdeos); color: #fff; cursor: pointer; }
+  .login button:disabled { opacity: .6; }
+  .login .err { color: var(--out); font-size: 13px; min-height: 18px; margin: 0 0 8px; }
+  footer button { font: inherit; background: none; border: 0; color: var(--burdeos); text-decoration: underline; cursor: pointer; padding: 0; }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding: 10px 16px 28px; }
+
+  @media (max-width: 900px) {
+    .controls { grid-template-columns: 1fr 1fr; }
+    .controls #q { grid-column: 1 / -1; }
+  }
+  /* Móvil: tabla -> tarjetas */
+  @media (max-width: 720px) {
+    .controls { grid-template-columns: 1fr; }
+    .controls { position: static; padding-bottom: 6px; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .brand h1 { font-size: 26px; }
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tr { padding: 12px 16px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; }
+    tr:last-child { border-bottom: 0; }
+    td { border: 0; padding: 0; }
+    td.prod { grid-column: 1; }
+    td.stk { grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; }
+    td.cod, td.ext, td.fmt, td.caja { grid-column: 1; font-size: 12px; color: var(--muted); }
+    td.fmt, td.caja { display: inline-block; width: auto; }
+    td.pvp { grid-column: 2; text-align: right; font-size: 13px; color: var(--muted); }
+    td.ext:empty, td.cod:empty, td.fmt:empty, td.caja:empty { display: none; }
+    td.ext[data-l]::before, td.caja[data-l]::before { content: attr(data-l) ": "; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><h1>LA VENDIMIA</h1><span>Inventario para ventas</span></div>
+    <div class="meta" id="meta">Cargando inventario…</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="tabs" id="tabs" aria-label="Categoría"></nav>
+
+  <div class="controls">
+    <select id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select>
+    <select id="fmt" aria-label="Formato"><option value="">Todos los formatos</option></select>
+    <input id="q" type="search" placeholder="Buscar producto, código, añada…" aria-label="Buscar">
+  </div>
+
+
+  <div class="kpis">
+    <div class="kpi"><div class="v" id="k-sku">–</div><div class="l">Productos</div></div>
+    <div class="kpi"><div class="v" id="k-uni">–</div><div class="l">Unidades en stock</div></div>
+    <div class="kpi"><div class="v" id="k-mar">–</div><div class="l">Marcas</div></div>
+    <div class="kpi"><div class="v" id="k-ago">–</div><div class="l">Ítems con cero stock</div></div>
+  </div>
+
+  <div class="leyenda">
+    <span><span class="pill ok">24</span> Disponible</span>
+    <span><span class="pill low">6</span> Stock bajo (≤ <span id="umbral">12</span>)</span>
+    <span><span class="pill out">0</span> Agotado</span>
+  </div>
+
+  <div id="lista"><div class="vacio">Cargando…</div></div>
+</main>
+<footer>Uso interno La Vendimia S.A. · Se actualiza solo cada vez que se sube un archivo nuevo.<span id="salir" hidden> · <button type="button">Cerrar sesión</button></span></footer>
+
+<div class="login" id="login">
+  <form id="login-form" autocomplete="on">
+    <h2>LA VENDIMIA</h2>
+    <p>Inventario para el equipo de ventas</p>
+    <input id="clave" type="password" placeholder="Clave de acceso" autocomplete="current-password" required>
+    <div class="err" id="login-err"></div>
+    <button id="login-btn" type="submit">Entrar</button>
+  </form>
+</div>
+
+<script>
+(() => {
+  const UMBRAL_BAJO = 12;
+  const REFRESCO_MS = 5 * 60 * 1000;
+  const ORDEN_FMT = ["50 ml", "375 ml", "500 ml", "700 ml", "750 ml", "1.5 L Magnum", "3 L", "6 L"];
+  const $ = id => document.getElementById(id);
+  const fmtN = new Intl.NumberFormat("es-EC");
+  const fmtP = new Intl.NumberFormat("es-EC", { style: "currency", currency: "USD" });
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const uds = arr => arr.reduce((s, i) => s + Math.max(0, i.stock || 0), 0);
+
+  let data = null, firma = "", cat = "";
+  let orden = { campo: "producto", dir: 1 };
+  $("umbral").textContent = UMBRAL_BAJO;
+
+  const estado = s => s == null ? "" : s <= 0 ? "out" : s <= UMBRAL_BAJO ? "low" : "ok";
+
+  // ---- estado en la URL (para compartir links por WhatsApp) ----
+  function leerHash() {
+    const p = new URLSearchParams(location.hash.slice(1));
+    return { cat: p.get("cat") || "", marca: p.get("marca") || "", fmt: p.get("fmt") || "", q: p.get("q") || "" };
+  }
+  function escribirHash() {
+    const p = new URLSearchParams();
+    if (cat) p.set("cat", cat);
+    if ($("marca").value) p.set("marca", $("marca").value);
+    if ($("fmt").value) p.set("fmt", $("fmt").value);
+    if ($("q").value.trim()) p.set("q", $("q").value.trim());
+    const h = p.toString();
+    history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
+  }
+  function aplicarHash() {
+    const h = leerHash();
+    cat = h.cat === CERO || (data.categorias || []).includes(h.cat) ? h.cat : "";
+    orden = cat === CERO ? { campo: "anio", dir: 1 } : { campo: "producto", dir: 1 };
+    $("q").value = h.q;
+    pintarSelectores(h.marca, h.fmt);
+  }
+
+  // ---- datos por nivel de filtro ----
+  // Los ítems con stock 0 (o negativo) van solo a su pestaña; el resto de vistas muestra lo disponible.
+  const CERO = "cero";
+  const sinStock = i => i.stock != null && i.stock <= 0;
+  const activos = () => data.items.filter(i => !sinStock(i));
+  const ceros = () => data.items.filter(sinStock);
+  const enCat = () => cat === CERO ? ceros() : activos().filter(i => !cat || i.categoria === cat);
+
+  function marcas(items) {
+    const m = new Map();
+    for (const it of items) {
+      const r = m.get(it.marca) || { skus: 0, uni: 0 };
+      r.skus++; r.uni += Math.max(0, it.stock || 0);
+      m.set(it.marca, r);
+    }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], "es"));
+  }
+
+  function pintarTabs() {
+    const cats = data.categorias || [];
+    if (cats.length < 2) { $("tabs").style.display = "none"; return; }
+    const tab = (c, label, items, cls = "") => `<button class="tab${cls}${c === cat ? " on" : ""}" data-c="${esc(c)}">${esc(label)}<small>${items.length}</small></button>`;
+    const act = activos(), cer = ceros();
+    $("tabs").innerHTML = tab("", "Todo", act) +
+      cats.map(c => tab(c, c, act.filter(i => i.categoria === c))).join("") +
+      (cer.length ? tab(CERO, "Ítems con cero stock", cer, " cero") : "");
+  }
+
+  function pintarSelectores(marcaSel, fmtSel) {
+    const base = enCat();
+    const lista = marcas(base);
+    $("marca").innerHTML = `<option value="">Todas las marcas (${lista.length})</option>` +
+      lista.map(([n, r]) => `<option value="${esc(n)}">${esc(n)} · ${r.skus}</option>`).join("");
+    $("marca").value = lista.some(([n]) => n === marcaSel) ? marcaSel : "";
+
+    const conMarca = base.filter(i => !$("marca").value || i.marca === $("marca").value);
+    const fmts = [...new Set(conMarca.map(i => i.formato).filter(Boolean))]
+      .sort((a, b) => (ORDEN_FMT.indexOf(a) + 99) % 99 - (ORDEN_FMT.indexOf(b) + 99) % 99 || a.localeCompare(b));
+    $("fmt").innerHTML = `<option value="">Todos los formatos</option>` +
+      fmts.map(f => `<option value="${esc(f)}">${esc(f)} · ${conMarca.filter(i => i.formato === f).length}</option>`).join("");
+    $("fmt").value = fmts.includes(fmtSel) ? fmtSel : "";
+    $("fmt").disabled = fmts.length < 2 && !$("fmt").value;
+
+    pintarTabs();
+  }
+
+  function filtrados() {
+    const marca = $("marca").value, fmt = $("fmt").value;
+    const terms = norm($("q").value).split(/\s+/).filter(Boolean);
+    return enCat().filter(it => {
+      if (marca && it.marca !== marca) return false;
+      if (fmt && it.formato !== fmt) return false;
+      if (!terms.length) return true;
+      const txt = norm([it.marca, it.producto, it.codigo, it.categoria, it.formato, ...Object.values(it.extra || {})].join(" "));
+      return terms.every(t => txt.includes(t));
+    });
+  }
+
+  function ordenar(arr) {
+    const { campo, dir } = orden;
+    const val = (it) => campo === "formato" ? ORDEN_FMT.indexOf(it.formato) : campo in it ? it[campo] : it.extra?.[campo];
+    return arr.sort((a, b) => {
+      const x = val(a), y = val(b);
+      if (campo === "anio") {  // sin año siempre al final; empate → marca y producto
+        if (x == null || y == null) return (x == null) - (y == null);
+        return (x - y) * dir || a.marca.localeCompare(b.marca, "es") || a.producto.localeCompare(b.producto, "es", { numeric: true });
+      }
+      if (typeof x === "number" || typeof y === "number") return ((x ?? -Infinity) - (y ?? -Infinity)) * dir;
+      return String(x ?? "").localeCompare(String(y ?? ""), "es", { numeric: true }) * dir;
+    });
+  }
+
+  function etiquetaFormato(it) {
+    if (!it.formato) return "";
+    const cls = (it.formato.includes("Magnum") || /^\d+ L$/.test(it.formato)) ? "m" : it.formato === "375 ml" || it.formato === "50 ml" ? "s" : "";
+    return `<span class="fmt-tag ${cls}">${esc(it.formato)}</span>`;
+  }
+
+  function pintar() {
+    const items = filtrados();
+    const extras = data.extras || [];
+    const tienePrecio = items.some(i => i.precio != null);
+    const tieneStock = data.items.some(i => i.stock != null);
+    const tieneFmt = items.some(i => i.formato);
+    const tieneCaja = items.some(i => i.caja);
+
+    $("k-sku").textContent = fmtN.format(items.length);
+    $("k-uni").textContent = tieneStock ? fmtN.format(uds(items)) : "–";
+    $("k-mar").textContent = fmtN.format(new Set(items.map(i => i.marca)).size);
+    $("k-ago").textContent = tieneStock ? fmtN.format(ceros().length) : "–";
+
+    if (!items.length) { $("lista").innerHTML = `<div class="vacio">No hay productos con esos filtros.</div>`; return; }
+    if (cat === CERO) { pintarCeros(items); return; }
+
+    const grupos = new Map();
+    for (const it of ordenar(items)) (grupos.get(it.marca) || grupos.set(it.marca, []).get(it.marca)).push(it);
+    const nombresGrupos = [...grupos.keys()].sort((a, b) => a.localeCompare(b, "es"));
+
+    const th = (campo, label, cls = "") => {
+      const o = orden.campo === campo ? (orden.dir > 0 ? " asc" : " desc") : "";
+      return `<th class="${cls}${o}" data-sort="${esc(campo)}">${esc(label)}</th>`;
+    };
+    const cabecera = `<thead><tr>${th("producto", "Producto")}${th("codigo", "Código")}` +
+      (tieneFmt ? th("formato", "Formato") : "") + (tieneCaja ? th("caja", "Caja", "num") : "") +
+      extras.map(e => th(e, e)).join("") +
+      (tieneStock ? th("stock", "Stock (uds.)", "num") : "") + (tienePrecio ? th("precio", "PVP", "num") : "") + `</tr></thead>`;
+
+    $("lista").innerHTML = nombresGrupos.map(nombre => {
+      const g = grupos.get(nombre);
+      const ago = g.filter(i => i.stock != null && i.stock <= 0).length;
+      const filas = g.map(it => {
+        const fmt = tieneFmt ? `<td class="fmt">${etiquetaFormato(it)}</td>` : "";
+        const cj = tieneCaja ? `<td class="caja num" data-l="Caja">${it.caja ? "x" + it.caja : ""}</td>` : "";
+        const ex = extras.map(e => `<td class="ext" data-l="${esc(e)}">${esc(it.extra?.[e] || "")}</td>`).join("");
+        const stk = tieneStock ? `<td class="num stk">${it.stock == null ? "–" : `<span class="pill ${estado(it.stock)}">${fmtN.format(it.stock)}</span>`}</td>` : "";
+        const pvp = tienePrecio ? `<td class="num pvp">${it.precio == null ? "" : fmtP.format(it.precio)}</td>` : "";
+        return `<tr><td class="prod">${esc(it.producto)}</td><td class="cod">${esc(it.codigo)}</td>${fmt}${cj}${ex}${stk}${pvp}</tr>`;
+      }).join("");
+      return `<section class="grupo"><div class="grupo-h"><h2>${esc(nombre)}</h2>` +
+        `<div class="res"><b>${g.length}</b> producto${g.length === 1 ? "" : "s"}${tieneStock ? ` · <b>${fmtN.format(uds(g))}</b> unidad${uds(g) === 1 ? "" : "es"}` : ""}${ago ? ` · <b>${ago}</b> agotado${ago === 1 ? "" : "s"}` : ""}</div></div>` +
+        `<table>${cabecera}<tbody>${filas}</tbody></table></section>`;
+    }).join("");
+  }
+
+  // Pestaña "Ítems con cero stock": agrupados por marca; dentro de cada marca,
+  // del año (cosecha) más antiguo al más nuevo y los sin año al final.
+  function pintarCeros(items) {
+    const th = (campo, label, cls = "") => {
+      const o = orden.campo === campo ? (orden.dir > 0 ? " asc" : " desc") : "";
+      return `<th class="${cls}${o}" data-sort="${esc(campo)}">${esc(label)}</th>`;
+    };
+    const cabecera = `<thead><tr>${th("anio", "Año")}${th("producto", "Producto")}${th("codigo", "Código")}` +
+      `${th("formato", "Formato")}${th("stock", "Stock", "num")}</tr></thead>`;
+    const grupos = new Map();
+    for (const it of ordenar(items)) (grupos.get(it.marca) || grupos.set(it.marca, []).get(it.marca)).push(it);
+    $("lista").innerHTML = [...grupos.keys()].sort((a, b) => a.localeCompare(b, "es")).map(nombre => {
+      const g = grupos.get(nombre);
+      const filas = g.map(it =>
+        `<tr><td class="anio">${it.anio ?? "–"}</td><td class="prod">${esc(it.producto)}</td>` +
+        `<td class="cod">${esc(it.codigo)}</td><td class="fmt">${etiquetaFormato(it)}</td>` +
+        `<td class="num stk"><span class="pill out">${fmtN.format(it.stock)}</span></td></tr>`).join("");
+      return `<section class="grupo"><div class="grupo-h"><h2>${esc(nombre)}</h2>` +
+        `<div class="res"><b>${g.length}</b> producto${g.length === 1 ? "" : "s"} en cero</div></div>` +
+        `<table>${cabecera}<tbody>${filas}</tbody></table></section>`;
+    }).join("");
+  }
+
+  function pintarMeta() {
+    const partes = [];
+    if (data.corte) {
+      const [y, m, d] = data.corte.split("-");
+      partes.push(`Stock al <b>${d}/${m}/${y}</b>`);
+    }
+    if (data.bodega) partes.push(esc(data.bodega));
+    const sub = new Date(data.actualizado).toLocaleString("es-EC", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Guayaquil" });
+    partes.push(`subido ${esc(sub)}`);
+    partes.push(`${fmtN.format(activos().length)} productos con stock · ${fmtN.format(uds(data.items))} unidades · ${fmtN.format(ceros().length)} en cero`);
+    $("meta").innerHTML = partes.join(" · ");
+  }
+
+  // ---- acceso con clave: los datos publicados vienen cifrados (AES-GCM) ----
+  const CLAVE_KEY = "lv-inventario-clave";
+  const guardada = { get() { try { return localStorage.getItem(CLAVE_KEY) || ""; } catch { return ""; } },
+                     set(v) { try { v ? localStorage.setItem(CLAVE_KEY, v) : localStorage.removeItem(CLAVE_KEY); } catch {} } };
+  let clave = guardada.get();
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+  async function descifrar(enc, pass) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+    const llave = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: b64(enc.sal), iterations: enc.iter, hash: "SHA-256" },
+      base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const plano = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(enc.iv) }, llave, b64(enc.datos));
+    return JSON.parse(new TextDecoder().decode(plano));
+  }
+
+  function pedirClave(msg) {
+    return new Promise(resolve => {
+      $("login-err").textContent = msg || "";
+      $("login").classList.add("on"); $("clave").value = ""; $("clave").focus();
+      $("login-form").onsubmit = e => {
+        e.preventDefault();
+        $("login-btn").disabled = true;
+        resolve($("clave").value);
+      };
+    });
+  }
+
+  async function obtenerDatos(interactivo) {
+    const t = "?t=" + Date.now();
+    const r = await fetch("data.enc.json" + t, { cache: "no-store" });
+    if (r.status === 404) {  // sin cifrar (prueba local)
+      const p = await fetch("data.json" + t, { cache: "no-store" });
+      if (!p.ok) throw new Error("HTTP " + p.status);
+      return p.json();
+    }
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const enc = await r.json();
+    let msg = "";
+    for (;;) {
+      if (!clave) {
+        if (!interactivo) return null;
+        clave = await pedirClave(msg);
+      }
+      try {
+        const d = await descifrar(enc, clave);
+        guardada.set(clave);
+        $("login").classList.remove("on"); $("login-btn").disabled = false;
+        $("salir").hidden = false;
+        return d;
+      } catch {
+        clave = ""; guardada.set("");
+        $("login-btn").disabled = false;
+        msg = "Clave incorrecta. Intenta de nuevo.";
+        if (!interactivo) return null;
+      }
+    }
+  }
+
+  async function cargar(inicial) {
+    try {
+      const nuevo = await obtenerDatos(inicial);
+      if (!nuevo) return;
+      const f = nuevo.actualizado + "|" + nuevo.archivo + "|" + nuevo.items.length;
+      if (f === firma) return;
+      firma = f; data = nuevo;
+      pintarMeta();
+      if (inicial) aplicarHash(); else pintarSelectores($("marca").value, $("fmt").value);
+      pintar();
+    } catch (e) {
+      if (inicial) $("lista").innerHTML = `<div class="error">No se pudo cargar el inventario (${esc(e.message)}). Recarga la página.</div>`;
+    }
+  }
+  $("salir").querySelector("button").addEventListener("click", () => { guardada.set(""); location.reload(); });
+
+  const refrescar = () => { escribirHash(); pintar(); };
+  $("tabs").addEventListener("click", e => {
+    const b = e.target.closest(".tab"); if (!b) return;
+    if ((b.dataset.c === CERO) !== (cat === CERO))
+      orden = b.dataset.c === CERO ? { campo: "anio", dir: 1 } : { campo: "producto", dir: 1 };
+    cat = b.dataset.c;
+    pintarSelectores($("marca").value, $("fmt").value); refrescar();
+  });
+  $("marca").addEventListener("change", () => {
+    pintarSelectores($("marca").value, $("fmt").value); refrescar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  $("fmt").addEventListener("change", refrescar);
+  let t; $("q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(refrescar, 150); });
+  $("lista").addEventListener("click", e => {
+    const h = e.target.closest("th[data-sort]"); if (!h) return;
+    const c = h.dataset.sort;
+    orden = { campo: c, dir: orden.campo === c ? -orden.dir : (c === "stock" || c === "precio" ? -1 : 1) };
+    pintar();
+  });
+  window.addEventListener("hashchange", () => { if (data) { aplicarHash(); pintar(); } });
+
+  cargar(true);
+  setInterval(() => cargar(false), REFRESCO_MS);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(false); });
+})();
+</script>
+</body>
+</html>
